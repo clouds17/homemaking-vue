@@ -1,27 +1,29 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Home from '../components/Home'
+import ALogin from '../components/admin/Login'
+import AIndex from '../components/admin/Index'
+import AWelcome from '../components/admin/Welcome'
+import AConsumer from '../components/admin/user/Consumer'
+import AAdministration from '../components/admin/user/Administration'
 
 Vue.use(VueRouter)
 
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  }
-]
-
 const router = new VueRouter({
-  routes
+  routes: [
+    { path: '/', component: Home },
+    { path: '/admin/login', component: ALogin },
+    {
+      path: '/admin/index',
+      component: AIndex,
+      redirect: '/admin/welcome',
+      children: [
+        { path: '/admin/welcome', component: AWelcome },
+        { path: '/admin/consumer', component: AConsumer },
+        { path: '/admin/Administration', component: AAdministration }
+      ]
+    }
+  ]
 })
 
 export default router
