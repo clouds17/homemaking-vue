@@ -27,7 +27,8 @@ import {
   Tooltip,
   Switch,
   Select,
-  Option
+  Option,
+  Tag
 } from 'element-ui'
 
 Vue.use(Button)
@@ -58,6 +59,7 @@ Vue.use(Tooltip)
 Vue.use(Switch)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(Tag)
 
 // 将它挂载到原型上，就可以用this.$message调用
 Vue.prototype.$message = Message

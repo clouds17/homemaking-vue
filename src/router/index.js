@@ -6,6 +6,7 @@ import AIndex from '../components/admin/Index'
 import AWelcome from '../components/admin/Welcome'
 import AConsumer from '../components/admin/user/Consumer'
 import AAdministration from '../components/admin/user/Administration'
+import ABabySitter from '../components/admin/baby-sitter/babySitter'
 
 Vue.use(VueRouter)
 
@@ -20,7 +21,8 @@ const router = new VueRouter({
       children: [
         { path: '/admin/welcome', component: AWelcome },
         { path: '/admin/consumer', component: AConsumer },
-        { path: '/admin/Administration', component: AAdministration }
+        { path: '/admin/Administration', component: AAdministration },
+        { path: '/admin/babySitter', component: ABabySitter }
       ]
     }
   ]

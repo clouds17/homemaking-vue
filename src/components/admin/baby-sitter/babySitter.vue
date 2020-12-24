@@ -3,31 +3,32 @@
         <!-- 面包屑导航 -->
         <el-breadcrumb separator-class="el-icon-arrow-right">
             <el-breadcrumb-item :to="{ path: '/admin/welcome' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-            <el-breadcrumb-item>管理员</el-breadcrumb-item>
+            <el-breadcrumb-item>保姆管理</el-breadcrumb-item>
+            <el-breadcrumb-item>保姆详情</el-breadcrumb-item>
         </el-breadcrumb>
-        <!-- 卡片视图 -->
         <el-card>
             <el-row :gutter="20">
-                <el-col :span="9">
-                    <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getAdminList">
-                        <el-button slot="append" icon="el-icon-search" @click="getAdminList"></el-button>
+                <el-col :span="8">
+                    <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getBabySitterList">
+                        <el-button slot="append" icon="el-icon-search" @click="getBabySitterList"></el-button>
                     </el-input>
                 </el-col>
                 <el-col :span="5">
-                    <el-button type="primary" @click="addDialogVisible=true">添加管理员</el-button>
+                    <el-button type="primary" @click="addDialogVisible=true">添加保姆</el-button>
                 </el-col>
             </el-row>
-            <hr class="hrs">
+            <hr class="hrs" >
+            <!-- 保姆信息列表 -->
             <el-table
-                :data="adminList"
+                :data="babySitterList"
                 style="width: 100%"
                 border
                 stripe>
                 <el-table-column type="index" label="#"></el-table-column>
                 <el-table-column
                     prop="username"
-                    label="用户名">
+                    label="用户名"
+                    width="100">
                 </el-table-column>
                 <el-table-column
                     prop="email"
@@ -37,31 +38,36 @@
                     prop="mobile"
                     label="手机号">
                 </el-table-column>
-                <el-table-column label="角色">
+                <el-table-column label="角色" width="100">
                     <template slot-scope="scope">
-                        <span v-if="scope.row.role == 1">经理</span>
-                        <span v-else-if="scope.row.role == 2">主管</span>
-                        <span v-else>组长</span>
+                        <span v-if="scope.row.role === 1">住家保姆</span>
+                        <span v-else-if="scope.row.role === 2">月嫂</span>
+                        <span v-else-if="scope.row.role === 3">临时工</span>
+                        <span v-else-if="scope.row.role === 4">护工</span>
+                        <span v-else>育儿嫂</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="状态" width="100">
+                <el-table-column label="状态" width="70">
                     <template slot-scope="scope">
-                        <el-switch
-                            v-model="scope.row.state" @change="adminChangeState(scope.row)">
-                        </el-switch>
+                        <el-tag type="success" v-if="scope.row.state === 1">空闲</el-tag>
+                        <el-tag type="info" v-else-if="scope.row.state === 2">忙碌</el-tag>
+                        <el-tag type="warning" v-else>休息</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column width="80" label="价格(天)" prop="price"></el-table-column>
+                <el-table-column label="入职时间" width="180">
+                    <template slot-scope="scope">
+                        <span>{{scope.row.entryTime | dateFormat}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作">
                     <template slot-scope="scope">
-                        <el-tooltip class="item" effect="dark" content="编辑" placement="left-start">
-                            <el-button type="primary" size="mini" icon="el-icon-edit" @click="showEditDialog(scope.row)"></el-button>
-                        </el-tooltip>
-                        <el-tooltip class="item" effect="dark" content="删除" placement="right-start">
-                            <el-button type="danger" size="mini" icon="el-icon-delete" @click="removeAdmin(scope.row._id)"></el-button>
-                        </el-tooltip>
+                        <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row)"></el-button>
+                        <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeById(scope.row._id)"></el-button>
                     </template>
                 </el-table-column>
             </el-table>
+
             <!-- 分页 -->
             <el-pagination
                 class="mt-15"
@@ -75,26 +81,29 @@
             </el-pagination>
         </el-card>
 
-        <!-- 添加管理员的dialog -->
+        <!-- 添加保姆的dialog -->
         <el-dialog
-            title="添加管理员"
+            title="添加保姆"
             :visible.sync="addDialogVisible"
             width="50%"
             @close="addDialogClosed">
             <el-form :model="addForm" :rules="addFormRule" ref="addFormRef" label-width="100px" >
-                <el-form-item label="">
+                <el-form-item label="保姆照片" prop="avator">
                     <el-upload
                         class="avatar-uploader"
-                        :action="avatorURL"
+                        :action=avatorURL
                         :show-file-list="false"
-                        :on-success="handleAvatarSuccess"
+                        :on-success="addHandleAvatarSuccess"
                         :before-upload="beforeAvatarUpload">
                         <img v-if="imageUrl" :src="imageUrl" class="avatar">
                         <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </el-upload>
                 </el-form-item>
-                <el-form-item label="用户名" prop="username">
+                <el-form-item label="保姆名称" prop="username">
                     <el-input v-model="addForm.username"></el-input>
+                </el-form-item>
+                <el-form-item label="保姆年龄" prop="age">
+                    <el-input v-model="addForm.age" type="number"></el-input>
                 </el-form-item>
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="addForm.email"></el-input>
@@ -105,17 +114,24 @@
                 <el-form-item label="手机号" prop="mobile">
                     <el-input v-model="addForm.mobile"></el-input>
                 </el-form-item>
-                <el-form-item label="职位" prop="role">
-                    <el-select v-model="addForm.role" placeholder="请选择职位">
-                        <el-option label="经理" value="1"></el-option>
-                        <el-option label="主管" value="2"></el-option>
-                        <el-option label="组长" value="3"></el-option>
+                <el-form-item label="价格" prop="price">
+                    <el-input v-model="addForm.price"></el-input>
+                </el-form-item>
+                <el-form-item label="角色" prop="role">
+                    <el-select v-model="addForm.role" placeholder="请选择保姆角色">
+                        <el-option label="住家保姆" value="1"></el-option>
+                        <el-option label="月嫂" value="2"></el-option>
+                        <el-option label="临时工" value="3"></el-option>
+                        <el-option label="护工" value="4"></el-option>
+                        <el-option label="育儿嫂" value="5"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="状态" prop="state">
-                    <el-switch
-                        v-model="addForm.state">
-                    </el-switch>
+                    <el-select v-model="addForm.state" disabled placeholder="请选择保姆状态">
+                        <el-option label="空闲" value="1"></el-option>
+                        <el-option label="忙碌" value="2"></el-option>
+                        <el-option label="休息" value="3"></el-option>
+                    </el-select>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -124,17 +140,17 @@
             </span>
         </el-dialog>
 
-        <!-- 编辑管理员的dialog -->
+        <!-- 编辑保姆的dialog -->
         <el-dialog
-            title="修改管理员信息"
+            title="编辑保姆信息"
             :visible.sync="editDialogVisible"
             width="50%"
             @close="editDialogClosed">
             <el-form :model="editForm" :rules="addFormRule" ref="editFormRef" label-width="100px" >
-                <el-form-item label="">
+                <el-form-item label="保姆照片" prop="avator">
                     <el-upload
                         class="avatar-uploader"
-                        :action="avatorURL"
+                        :action=avatorURL
                         :show-file-list="false"
                         :on-success="editHandleAvatarSuccess"
                         :before-upload="beforeAvatarUpload">
@@ -142,8 +158,11 @@
                         <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </el-upload>
                 </el-form-item>
-                <el-form-item label="用户名" prop="username">
+                <el-form-item label="保姆名称" prop="username">
                     <el-input v-model="editForm.username"></el-input>
+                </el-form-item>
+                <el-form-item label="保姆年龄" prop="age">
+                    <el-input v-model="editForm.age" type="number"></el-input>
                 </el-form-item>
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="editForm.email"></el-input>
@@ -151,11 +170,23 @@
                 <el-form-item label="手机号" prop="mobile">
                     <el-input v-model="editForm.mobile"></el-input>
                 </el-form-item>
-                <el-form-item label="职位" prop="role">
-                    <el-select v-model="editForm.role" placeholder="请选择职位">
-                        <el-option label="经理" value="1"></el-option>
-                        <el-option label="主管" value="2"></el-option>
-                        <el-option label="组长" value="3"></el-option>
+                <el-form-item label="价格" prop="price">
+                    <el-input v-model="editForm.price"></el-input>
+                </el-form-item>
+                <el-form-item label="角色" prop="role">
+                    <el-select v-model="editForm.role" placeholder="请选择保姆角色">
+                        <el-option label="住家保姆" value="1"></el-option>
+                        <el-option label="月嫂" value="2"></el-option>
+                        <el-option label="临时工" value="3"></el-option>
+                        <el-option label="护工" value="4"></el-option>
+                        <el-option label="育儿嫂" value="5"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="状态" prop="state">
+                    <el-select v-model="editForm.state" placeholder="请选择保姆状态">
+                        <el-option label="空闲" value="1"></el-option>
+                        <el-option label="忙碌" value="2"></el-option>
+                        <el-option label="休息" value="3"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
@@ -176,34 +207,46 @@ export default {
       }
       callback(new Error('请输入符合规则的手机号'))
     }
+    const checkAge = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error('年龄不能为空'))
+      }
+      setTimeout(() => {
+        if (value < 25) {
+          callback(new Error('年龄必须大于25岁'))
+        } else if (value > 50) {
+          callback(new Error('年龄必须小于50岁'))
+        } else {
+          callback()
+        }
+      }, 500)
+    }
     return {
       queryInfo: {
         query: '',
         pagenum: 1,
         pagesize: 2
       },
-      adminList: [],
+      babySitterList: [],
       total: 0,
-      // 添加管理员的dialog
       addDialogVisible: false,
+      avatorURL: 'http://localhost:3000/upload/',
+      imageUrl: '',
       addForm: {
         username: '',
         email: '',
         password: '',
         mobile: '',
-        role: '1',
-        state: 0,
-        avator: '',
-        adress: ''
+        role: '',
+        state: '1',
+        price: '',
+        age: '',
+        avator: ''
       },
       addFormRule: {
         username: [
           { required: true, message: '请输入用户名称', trigger: 'blur' },
           { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
-        ],
-        email: [
-          { required: true, message: '请输入邮箱', trigger: 'blur' },
-          { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' },
@@ -212,81 +255,80 @@ export default {
         mobile: [
           { required: true, message: '请输入手机号', trigger: 'blur' },
           { validator: checkMobile, trigger: ['blur', 'change'] }
+        ],
+        role: [
+          { required: true, message: '请选择保姆角色', trigger: 'blur' }
+        ],
+        price: [
+          { required: true, message: '请输入价格', trigger: 'blur' }
+        ],
+        age: [
+          { validator: checkAge, trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱', trigger: 'blur' },
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
         ]
       },
-      avatorURL: 'http://localhost:3000/upload/',
-      imageUrl: '',
-      // 编辑的dialog框
+      // 编辑的dialog
       editDialogVisible: false,
       editForm: {
         username: '',
+        age: '',
         email: '',
         mobile: '',
+        price: '',
         role: '',
+        state: '',
         avator: ''
       },
       editUserId: ''
     }
   },
   created() {
-    this.getAdminList()
+    this.getBabySitterList()
   },
   methods: {
-    async getAdminList() {
-      const { data: res } = await this.$http.get(`admin/allAdmins/${this.getUserInfo.adress}`, {
+    // 获取所有保姆的信息
+    async getBabySitterList() {
+      const { data: res } = await this.$http.get(`admin/allBabySitter/${this.getUserInfo.adress}`, {
         params: this.queryInfo
       })
       if (res.meta.status !== 200) {
         return this.$message.error(res.meta.message)
       }
-      this.adminList = res.data
+      this.babySitterList = res.data
       this.total = res.total
-      console.log('admin', res.data)
+      console.log('babyList', res)
     },
-    // 修改管理员状态
-    async adminChangeState(scope) {
-      const { data: res } = await this.$http.put(`admin/change/${scope._id}/state/${scope.state}`)
-      if (res.meta.status !== 200) {
-        scope.state = !scope.state
-        return this.$message.error(res.meta.message)
-      }
-      this.$message.success('修改成功')
-    },
-    handleSizeChange(newSize) {
-      this.queryInfo.pagesize = newSize
-      this.getAdminList()
-    },
-    handleCurrentChange(newNum) {
-      this.queryInfo.pagenum = newNum
-      this.getAdminList()
-    },
-    // 保存添加的dialog
-    saveAddDialog() {
-      this.$refs.addFormRef.validate(async valid => {
-        if (!valid) return 0
-        const adminData = this.addForm
-        if (adminData.avator === '') {
-          adminData.avator = 'uploads/default.jpg'
-        }
-        adminData.adress = this.getUserInfo.adress
-        const { data: res } = await this.$http.post('admin/addAdmin', adminData)
-        if (res.meta.status !== 201) {
-          return this.$message.error(res.meta.message)
-        }
-        this.$message.success('添加成功')
-        this.getAdminList()
-        this.addDialogVisible = false
-        console.log('addAdmin', res.data)
-      })
-    },
-    // 关闭添加
+    // 关闭添加保姆dialog
     addDialogClosed() {
       this.$refs.addFormRef.resetFields()
       this.imageUrl = ''
       this.addForm.avator = ''
     },
-    // 上传成功
-    handleAvatarSuccess(response) {
+    // 保存添加保姆的dialog
+    async saveAddDialog() {
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) return 0
+        const babyData = this.addForm
+        if (babyData.avator === '') {
+          babyData.avator = 'uploads/default.jpg'
+        }
+        babyData.entryTime = Date.now()
+        babyData.adress = this.getUserInfo.adress
+        const { data: res } = await this.$http.post('admin/addBabySitter', babyData)
+        if (res.meta.status !== 201) {
+          return this.$message.error(res.meta.message)
+        }
+        this.$message.success('添加成功')
+        this.getBabySitterList()
+        this.addDialogVisible = false
+        console.log(res)
+      })
+    },
+    // 头像添加成功
+    addHandleAvatarSuccess(response) {
       if (response.meta.status !== 200) {
         return this.$message.error(response.meta.message)
       }
@@ -294,7 +336,7 @@ export default {
       this.addForm.avator = response.data.tmp_path
       console.log('success', response)
     },
-    // 上传之前
+    // 头像添加之前
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg' || file.type === 'image/png'
       const isLt3M = file.size / 1024 / 1024 < 3
@@ -306,7 +348,14 @@ export default {
       }
       return isJPG && isLt3M
     },
-    // 编辑的头像上传
+    handleSizeChange(newSize) {
+      this.queryInfo.pagesize = newSize
+      this.getBabySitterList()
+    },
+    handleCurrentChange(newNum) {
+      this.queryInfo.pagenum = newNum
+      this.getBabySitterList()
+    },
     editHandleAvatarSuccess(response) {
       if (response.meta.status !== 200) {
         return this.$message.error(response.meta.message)
@@ -315,38 +364,37 @@ export default {
       this.editForm.avator = response.data.tmp_path
       console.log('success', response)
     },
-    // 显示编辑的dialog框
     showEditDialog(scope) {
       this.editUserId = scope._id
       this.editForm.username = scope.username
+      this.editForm.age = scope.age
       this.editForm.email = scope.email
       this.editForm.mobile = scope.mobile
-      this.editForm.role = scope.role.toString()
+      this.editForm.price = scope.price
+      this.editForm.role = scope.role
+      this.editForm.state = scope.state
       this.imageUrl = scope.avator
       this.editDialogVisible = true
+      console.log(this.editForm)
     },
-    // 关闭编辑的dialog框
     editDialogClosed() {
       this.$refs.editFormRef.resetFields()
       this.imageUrl = ''
       this.editForm.avator = ''
-      this.editUserId = ''
     },
-    // 保存编辑的dialog框
-    saveEditDialog() {
+    async saveEditDialog() {
       this.$refs.editFormRef.validate(async valid => {
         if (!valid) return 0
-        const { data: res } = await this.$http.put(`admin/modifyAdmin/${this.editUserId}`, this.editForm)
+        const { data: res } = await this.$http.put(`admin/modifyBabySitter/${this.editUserId}`, this.editForm)
         if (res.meta.status !== 200) {
-          return this.$message.error('修改失败')
+          return this.$message.error(res.meta.message)
         }
         this.$message.success('修改成功')
-        this.getAdminList()
+        this.getBabySitterList()
         this.editDialogVisible = false
       })
     },
-    // 删除管理员
-    async removeAdmin(id) {
+    async removeById(id) {
       const confirmResult = await this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -355,12 +403,12 @@ export default {
       if (confirmResult !== 'confirm') {
         return this.$message.info('已取消删除')
       }
-      const { data: res } = await this.$http.delete(`admin/deleteAdmin/${id}`)
+      const { data: res } = await this.$http.delete(`admin/deleteBabySitter/${id}`)
       if (res.meta.status !== 200) {
-        return this.$message.error(res.meta.message)
+        return this.$message.error('删除失败')
       }
       this.$message.success('删除成功')
-      this.getAdminList()
+      this.getBabySitterList()
     }
   },
   computed: {
@@ -371,22 +419,23 @@ export default {
   }
 }
 </script>
+
 <style lang="less" scoped>
 .hrs {
     border: .5px solid #ccc;
     margin: 20px 0;
 }
 .avatar-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
-  line-height: 178px;
-  text-align: center;
-}
-.avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
 </style>
