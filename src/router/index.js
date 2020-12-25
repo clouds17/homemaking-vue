@@ -7,6 +7,7 @@ import AWelcome from '../components/admin/Welcome'
 import AConsumer from '../components/admin/user/Consumer'
 import AAdministration from '../components/admin/user/Administration'
 import ABabySitter from '../components/admin/baby-sitter/babySitter'
+import AOrders from '../components/admin/orders/orders'
 
 Vue.use(VueRouter)
 
@@ -22,7 +23,8 @@ const router = new VueRouter({
         { path: '/admin/welcome', component: AWelcome },
         { path: '/admin/consumer', component: AConsumer },
         { path: '/admin/Administration', component: AAdministration },
-        { path: '/admin/babySitter', component: ABabySitter }
+        { path: '/admin/babySitter', component: ABabySitter },
+        { path: '/admin/order', component: AOrders }
       ]
     }
   ]

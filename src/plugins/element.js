@@ -28,7 +28,8 @@ import {
   Switch,
   Select,
   Option,
-  Tag
+  Tag,
+  DatePicker
 } from 'element-ui'
 
 Vue.use(Button)
@@ -60,6 +61,7 @@ Vue.use(Switch)
 Vue.use(Select)
 Vue.use(Option)
 Vue.use(Tag)
+Vue.use(DatePicker)
 
 // 将它挂载到原型上，就可以用this.$message调用
 Vue.prototype.$message = Message
