@@ -133,6 +133,19 @@
                 <el-button type="primary" @click="saveEditDialog">确 定</el-button>
             </span>
         </el-dialog>
+
+        <!-- 历史订单 -->
+        <el-dialog
+          title="历史订单"
+          :visible.sync="historyDialogVisible"
+          width="50%"
+          @close="historyDialogClosed">
+          <span>这是一段信息</span>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="historyDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="saveHis">确 定</el-button>
+          </span>
+        </el-dialog>
     </div>
 </template>
 

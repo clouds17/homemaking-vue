@@ -8,11 +8,21 @@
         </el-breadcrumb>
         <!-- 卡片视图 -->
         <el-card>
-            <el-row>
+            <el-row :gutter="20">
                 <el-col :span="10">
                     <el-input placeholder="输入订单号搜索" v-model.trim="queryInfo.query" clearable @clear="getOrderList">
                         <el-button slot="append" icon="el-icon-search" @click="getOrderList"></el-button>
                     </el-input>
+                </el-col>
+                <el-col :span="5">
+                    <el-select v-model="queryInfo.state" placeholder="请选择订单" @change="getOrderList">
+                        <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
                 </el-col>
             </el-row>
             <hr class="hrs" >
@@ -73,10 +83,25 @@ export default {
       queryInfo: {
         query: '',
         pagesize: 2,
-        pagenum: 1
+        pagenum: 1,
+        state: ''
       },
       orderList: [],
-      total: 0
+      total: 0,
+      options: [
+        {
+          value: '',
+          label: '全部'
+        },
+        {
+          value: '1',
+          label: '完成'
+        },
+        {
+          value: '0',
+          label: '未完成'
+        }
+      ]
     }
   },
   created() {

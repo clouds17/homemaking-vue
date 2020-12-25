@@ -55,15 +55,18 @@
                     </template>
                 </el-table-column>
                 <el-table-column width="80" label="价格(天)" prop="price"></el-table-column>
-                <el-table-column label="入职时间" width="180">
+                <el-table-column label="入职时间" >
                     <template slot-scope="scope">
                         <span>{{scope.row.entryTime | dateFormat}}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作">
+                <el-table-column label="操作" width="180">
                     <template slot-scope="scope">
                         <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row)"></el-button>
                         <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeById(scope.row._id)"></el-button>
+                        <el-tooltip class="item" effect="dark" content="添加文章" placement="top">
+                            <el-button :disabled="scope.row.isArticle" type="warning" @click="showAddArticle(scope.row)" icon="el-icon-notebook-1" size="mini"></el-button>
+                        </el-tooltip>
                     </template>
                 </el-table-column>
             </el-table>
@@ -195,6 +198,42 @@
                 <el-button type="primary" @click="saveEditDialog">确 定</el-button>
             </span>
         </el-dialog>
+
+        <!-- 添加文章的dialog -->
+        <el-dialog
+            title="添加文章"
+            :visible.sync="ArticledialogVisible"
+            width="50%"
+            @close="articleDialogClosed">
+            <el-form :model="articleForm" :rules="articleFormRule" ref="articleFormRef" label-width="100px" >
+                <el-form-item label="标题" prop="title">
+                    <el-input v-model="articleForm.title"></el-input>
+                </el-form-item>
+                <el-form-item label="保姆id">
+                    <el-input v-model="articleForm.bid" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="banner轮播图">
+                    <el-upload
+                        class="upload-demo"
+                        ref="articleUploadRef"
+                        :action="avatorURL"
+                        :on-preview="articleHandlePreview"
+                        :on-remove="articleHandleRemove"
+                        :on-success="articleHandleSuccess"
+                        list-type="picture">
+                        <el-button size="small" type="primary">点击上传</el-button>
+                        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+                    </el-upload>
+                </el-form-item>
+                <el-form-item label="内容">
+                    <quill-editor v-model="articleForm.content" ></quill-editor>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="ArticledialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveArticledialog">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -282,7 +321,22 @@ export default {
         state: '',
         avator: ''
       },
-      editUserId: ''
+      editUserId: '',
+      // 添加文章
+      ArticledialogVisible: false,
+      articleForm: {
+        title: '',
+        bid: '',
+        pics: [],
+        content: '',
+        like: 0
+      },
+      articleFormRule: {
+        title: [
+          { required: true, message: '请输入标题', trigger: 'blur' },
+          { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+        ]
+      }
     }
   },
   created() {
@@ -409,6 +463,50 @@ export default {
       }
       this.$message.success('删除成功')
       this.getBabySitterList()
+    },
+    // 添加文章
+    showAddArticle(scope) {
+      this.articleForm.bid = scope._id
+      this.ArticledialogVisible = true
+    },
+
+    articleHandlePreview(file) {
+      console.log('previewAr', file)
+    },
+    articleHandleRemove(file, fileList) {
+      const url = file.response.data.tmp_path
+      const index = this.articleForm.pics.findIndex(item => {
+        return item === url
+      })
+      this.articleForm.pics.splice(index, 1)
+      console.log('removeAr', file, fileList)
+    },
+    articleHandleSuccess(response) {
+      if (response.meta.status !== 200) {
+        return this.$message.error('上传失败')
+      }
+      this.articleForm.pics.push(response.data.tmp_path)
+      console.log('successAr', response)
+    },
+    articleDialogClosed() {
+      this.$refs.articleFormRef.resetFields()
+      this.articleForm.content = ''
+      this.$refs.articleUploadRef.clearFiles()
+      this.articleForm.pics = []
+    },
+    saveArticledialog() {
+      this.$refs.articleFormRef.validate(async valid => {
+        if (!valid) return 0
+        this.articleForm.pics = JSON.stringify(this.articleForm.pics)
+        const { data: res } = await this.$http.post('admin/addIntroduce', this.articleForm)
+        if (res.meta.status !== 200) {
+          return this.$message.error('添加失败')
+        }
+        this.$message.success('添加成功')
+        this.ArticledialogVisible = false
+        this.getBabySitterList()
+        console.log('save', res.data)
+      })
     }
   },
   computed: {
@@ -438,4 +536,5 @@ export default {
     height: 178px;
     display: block;
   }
+
 </style>
