@@ -141,15 +141,7 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.line {
-  text-overflow: -o-ellipsis-lastline;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
+
 .hrs {
     border: .5px solid #ccc;
     margin: 20px 0;

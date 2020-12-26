@@ -212,6 +212,15 @@
                 <el-form-item label="保姆id">
                     <el-input v-model="articleForm.bid" disabled></el-input>
                 </el-form-item>
+                <el-form-item label="工作技能">
+                    <el-input v-model="articleForm.workingSkill" placeholder="请空一个字符为间隔"></el-input>
+                </el-form-item>
+                <el-form-item label="语言技能">
+                    <el-input v-model="articleForm.languageSkill" placeholder="请空一个字符为间隔"></el-input>
+                </el-form-item>
+                <el-form-item label="证书">
+                    <el-input v-model="articleForm.certificate" placeholder="请空一个字符为间隔"></el-input>
+                </el-form-item>
                 <el-form-item label="banner轮播图">
                     <el-upload
                         class="upload-demo"
@@ -329,7 +338,9 @@ export default {
         bid: '',
         pics: [],
         content: '',
-        like: 0
+        workingSkill: '',
+        languageSkill: '',
+        certificate: ''
       },
       articleFormRule: {
         title: [
@@ -497,8 +508,8 @@ export default {
     saveArticledialog() {
       this.$refs.articleFormRef.validate(async valid => {
         if (!valid) return 0
-        this.articleForm.pics = JSON.stringify(this.articleForm.pics)
-        const { data: res } = await this.$http.post('admin/addIntroduce', this.articleForm)
+        this.articleForm.pics = this.articleForm.pics.join(',')
+        const { data: res } = await this.$http.post(`admin/addIntroduce/${this.getUserInfo.adress}`, this.articleForm)
         if (res.meta.status !== 200) {
           return this.$message.error('添加失败')
         }
